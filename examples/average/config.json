@@ -1,0 +1,14 @@
+{
+  "question": "average([3, 6, 9]) 的结果是 9，预期是 6。请调查原因，区分候选判断和已验证事实。",
+  "initial_materials": [
+    "用户报告：函数位于 average.py。三项输入预期平均值为 6，观察到结果 9；这是用户提供的现象，尚未在本次分析运行中验证。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  }
+}
