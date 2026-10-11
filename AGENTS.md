@@ -32,8 +32,12 @@
 
 ### Issue tracker
 
-Issues and specs live as GitHub Issues. Use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues 和 specs 存放在 GitHub Issues 中，使用 `gh` CLI 操作。参见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+使用五个标准标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human` 和 `wontfix`。参见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 
-single-context: use root `GLOSSARY.md` and `docs/adr/` when present. See `docs/agents/domain.md`.
+采用 single-context 布局；相关文件存在时，读取根目录的 `GLOSSARY.md` 和 `docs/adr/`。参见 `docs/agents/domain.md`。
