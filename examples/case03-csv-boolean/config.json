@@ -1,0 +1,21 @@
+{
+  "question": "CSV 中 enabled 字段为 false 的记录被导入后仍显示为启用。请调查转换过程并核对实际结果。",
+  "initial_materials": [
+    "用户报告：导入 CSV 行 `feature_x,false` 后，功能 feature_x 仍被标记为启用。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  },
+  "permitted_tests": {
+    "csv-boolean-check": {
+      "command": ["/usr/bin/env", "python3", "checks/check_csv_boolean.py"],
+      "timeout_seconds": 10,
+      "assertion_failure_exit_codes": [10]
+    }
+  }
+}

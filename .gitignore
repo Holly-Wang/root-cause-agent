@@ -8,3 +8,6 @@ dist/
 runs/
 .env
 .env.*
+
+# 评测答案与评分依据：绝不进版本历史
+evaluation-private/

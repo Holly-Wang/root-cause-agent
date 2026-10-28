@@ -1,0 +1,14 @@
+{
+  "question": "订单导出后少了一些记录。请调查原因；如果现有材料不能确定原因，请说明还需要什么信息。",
+  "initial_materials": [
+    "用户报告：订单导出文件里少了一些记录，但没有提供导出任务编号、筛选条件、实际与预期行数，也没有说明是否出现截断提示。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  }
+}

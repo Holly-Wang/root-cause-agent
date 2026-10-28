@@ -1,0 +1,21 @@
+{
+  "question": "重量恰好为 5 kg 的订单被收取 9 元运费，预期应收 5 元。请检查费率规则和边界输入。",
+  "initial_materials": [
+    "用户报告：5 kg 的订单运费为 9 元；规则说明 5 kg 及以下收 5 元，超过 5 kg 收 9 元。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  },
+  "permitted_tests": {
+    "shipping-boundary-check": {
+      "command": ["/usr/bin/env", "python3", "checks/check_shipping_boundary.py"],
+      "timeout_seconds": 10,
+      "assertion_failure_exit_codes": [10]
+    }
+  }
+}

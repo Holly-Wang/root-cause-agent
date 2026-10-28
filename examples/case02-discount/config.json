@@ -1,0 +1,21 @@
+{
+  "question": "订单金额为 1000、折扣为 10% 时，计算结果是 -9000，预期应为 900。请找出原因并说明是否通过了实际检查。",
+  "initial_materials": [
+    "用户报告：订单金额 1000 元、折扣 10% 时，系统返回 -9000 元；业务预期为 900 元。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  },
+  "permitted_tests": {
+    "discount-check": {
+      "command": ["/usr/bin/env", "python3", "checks/check_discount.py"],
+      "timeout_seconds": 10,
+      "assertion_failure_exit_codes": [10]
+    }
+  }
+}

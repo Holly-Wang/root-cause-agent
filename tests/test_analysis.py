@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from rca_agent import run_analysis
+from rca_agent.control import RunControl
 
 
 def read_call(path: str, start: int = 1, end: int = 2) -> dict[str, Any]:
@@ -25,6 +26,8 @@ def read_call(path: str, start: int = 1, end: int = 2) -> dict[str, Any]:
 
 def final_response(evidence_id: str = "E2") -> dict[str, Any]:
     report = {
+        "root_cause_found": False, "information_gaps": ["尚缺获准测试的验证结果。"],
+        "follow_up_questions": ["能否提供实际输入和测试结果？"],
         "candidate_causes": [{
             "summary": "除数使用固定值 2，三项输入的平均值因此错误。",
             "supporting_evidence": [{"evidence_id": evidence_id, "start_line": 2, "end_line": 2}],
@@ -47,7 +50,8 @@ class SequenceTransport:
         self.responses = responses
         self.requests: list[dict[str, Any]] = []
 
-    def complete(self, request: dict[str, Any], timeout: float) -> dict[str, Any]:
+    def complete(self, request: dict[str, Any], control: RunControl) -> dict[str, Any]:
+        control.checkpoint()
         self.requests.append(json.loads(json.dumps(request)))
         return self.responses.pop(0)
 
@@ -147,7 +151,7 @@ class AnalysisTests(unittest.TestCase):
 
     def test_unknown_citation_never_becomes_completed_report(self) -> None:
         result = run_analysis(self.config, transport=SequenceTransport([read_call("average.py"),
-                                                                       final_response("E999")]))
+                                                                       final_response("E999"), final_response("E999")]))
         self.assertEqual(result.status, "system_failure")
         self.assertIsNone(result.report)
         self.assertIn("unknown_evidence", result.reason)
@@ -156,7 +160,7 @@ class AnalysisTests(unittest.TestCase):
 
     def test_citation_cannot_expand_the_actual_read_range(self) -> None:
         result = run_analysis(self.config, transport=SequenceTransport([read_call("average.py", 1, 1),
-                                                                       final_response()]))
+                                                                       final_response(),final_response()]))
         self.assertEqual(result.status, "system_failure")
         self.assertIn("invalid_reference_range", result.reason)
 
@@ -190,9 +194,9 @@ class AnalysisTests(unittest.TestCase):
 
     def test_total_timeout_prevents_tool_execution_after_late_model_response(self) -> None:
         class SlowTransport(SequenceTransport):
-            def complete(self, request: dict[str, Any], timeout: float) -> dict[str, Any]:
-                time.sleep(0.03)
-                return super().complete(request, timeout)
+            def complete(self, request: dict[str, Any], control: RunControl) -> dict[str, Any]:
+                control.wait(0.03)
+                return super().complete(request, control)
 
         self.config["limits"]["total_seconds"] = 0.01
         result = run_analysis(self.config, transport=SlowTransport([read_call("average.py")]))
@@ -202,7 +206,7 @@ class AnalysisTests(unittest.TestCase):
 
     def test_external_error_text_is_not_written_to_artifacts(self) -> None:
         class FailingTransport:
-            def complete(self, request: dict[str, Any], timeout: float) -> dict[str, Any]:
+            def complete(self, request: dict[str, Any], control: RunControl) -> dict[str, Any]:
                 raise RuntimeError("not-a-real-credential")
 
         result = run_analysis(self.config, transport=FailingTransport())
@@ -229,6 +233,33 @@ class AnalysisTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "路径"):
                     run_analysis(source, transport=transport)
                 self.assertEqual(transport.requests, [])
+
+    def test_correct_response(self) -> None:
+        transport = SequenceTransport([
+        read_call("average.py"),
+        final_response("E999"),  # 首份报告无效
+        final_response("E2"),    # 修正后引用有效
+    ])
+        result = run_analysis(self.config, transport=transport)
+        self.assertEqual(result.status, "completed")
+        self.assertEqual(result.model_calls, 3)
+        self.assertEqual(result.tool_calls, 1)
+
+        feedback = json.loads(transport.requests[2]["messages"][-1]["content"])
+        self.assertEqual(feedback["error"], "unknown_evidence")
+
+    def test_run_out_of_limit(self) -> None:
+        self.config["limits"]["max_model_calls"] = 2
+        transport = SequenceTransport([
+        read_call("average.py"),
+        final_response("E999"),  # 首份报告无效
+        final_response("E2"),    # 修正后引用有效
+    ])
+        result = run_analysis(self.config, transport=transport)
+        self.assertEqual(result.status, "limits_exhausted")
+        self.assertEqual(result.model_calls, 2)
+        self.assertEqual(len(transport.requests), 2)
+        self.assertEqual(len(transport.responses), 1)  # 第三份回复仍未被取用
 
 
 if __name__ == "__main__":

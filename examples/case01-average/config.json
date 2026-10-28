@@ -1,0 +1,21 @@
+{
+  "question": "average([3, 6, 9]) 的结果是 9，预期是 6。请调查原因，区分候选判断和已验证事实。",
+  "initial_materials": [
+    "用户报告：三项输入 [3, 6, 9] 的平均值预期为 6，观察到结果 9。请检查实现并在需要时运行已许可的检查。"
+  ],
+  "authorized_dir": "material",
+  "model": "deepseek-flash",
+  "limits": {
+    "max_model_calls": 8,
+    "max_tool_calls": 12,
+    "total_seconds": 120,
+    "max_read_bytes": 8192
+  },
+  "permitted_tests": {
+    "average-check": {
+      "command": ["/usr/bin/env", "python3", "checks/check_average.py"],
+      "timeout_seconds": 10,
+      "assertion_failure_exit_codes": [10]
+    }
+  }
+}
